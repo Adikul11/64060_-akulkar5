@@ -1,0 +1,82 @@
+---
+title: "FML_Assignment_1"
+author: "Aditya Ashish Kulkarni"
+date: "2024-02-01"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(caret)
+
+```
+
+
+**Answer 1:** downloaded data from Kaggle link: <https://www.kaggle.com/datasets/sujay1844/used-car-prices>
+
+**Answer 2:** Imported data set into R 
+
+```{r}
+df = read.csv('/Users/aditya/Downloads/train.csv')
+head(df)
+
+```
+
+**Answer 3:** Print out of descriptive statistics 
+
+``` {r}
+summary(df)
+
+
+``` 
+
+``` {r}
+str(df)
+
+```
+
+**Answer 4:** Transformation of variable. 
+
+Normalization in range 0 - 1 
+
+Also using pre process function for normalization
+Getting all numeric values in the range between 0-1 
+
+```{r}
+
+#Preprocess definition for scaling to 0-1 range
+preproc <- preProcess(df, method = c("range"))
+
+# Apply normalization
+normalized_data <- as.data.frame(predict(preproc, df))
+
+# Print normalized data
+head(normalized_data)
+
+```
+
+
+
+**Answer 5:**
+
+Plotting data, 
+
+```{r}
+plot(df$Price, xlab = "Count of Cars", ylab = "Price of Cars", col = "blue")
+
+```
+
+
+Plotting seats:
+Using table function for segregate seats and their counts and plotting it into bar graph using bar plot. 
+````{r}
+t = table(df$Seats)
+barplot(t,xlab = "Number of Seats in Car", ylab = "Count", col = "cyan")
+```
+
+
+
+
