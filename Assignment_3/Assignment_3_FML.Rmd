@@ -2,32 +2,26 @@
 title: "Assignment_3_FML"
 author: "Aditya Ashish Kulkarni"
 date: "2024-03-09"
-output:
-  html_document: default
-  pdf_document: default
+output: 
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-
 ```
 ***Instruction : The file UniversalBank.csv contains data on 5000 customers of Universal Bank. The data include customer demographic information (age, income, etc.), the customer’s relationship with the bank (mortgage, securities account, etc.), and the customer response to the last personal loan campaign (Personal Loan). Among these 5000 customers, only 480 (= 9.6%) accepted the personal loan that was offered to them in the earlier campaign. In this exercise, we focus on two predictors: Online (whether or not the customer is an active user of online banking services) and Credit Card (abbreviated CC below) (does the customer hold a credit card issued by the bank), and the outcome Personal Loan (abbreviated Loan below).Partition the data into training (60%) and validation (40%) sets.*** 
 
 
 ```{r}
 library(caret)
-library(ggplot2)
-
-
 ```
 
 Reading CVS file 
 ```{r}
 #importing CVS file 
 
-library(readr)
-df <- read_csv("UniversalBank.csv")
+df <- read.csv("UniversalBank.csv")
 
 ```
 
@@ -61,8 +55,6 @@ cat("Size of Validation Set:", nrow(valid.df))
 Creating Pivot table
 
 ```{r}
-
-library(reshape2)
 library(e1071)
 library(tidyverse)
 ```
@@ -85,7 +77,7 @@ Calculating Probability
 ```{r}
 #Probability 
 
-#P(Loan=1∣CC=1,Online=1)= Total number of customers with CC = 1 and Online = 1 / Number of customers with CC = 1, Online = 1, and Loan = 1
+#P(Loan=1/CC=1,Online=1)= Total number of customers with CC = 1 and Online = 1 / Number of customers with CC = 1, Online = 1, and Loan = 1
 
 prob_loan_accept <- (p.df_2[4,2]/(sum(p.df_2[3,2],p.df_2[4,2])))
 
@@ -122,22 +114,22 @@ print(p.PT_2)
 
 ```
 
-***Question D) Compute the following quantities [P(A | B) means “the probability ofA given B”]: i. P(CC = 1 | Loan = 1) (the proportion of credit card holders among the loan acceptors), ii. P(Online = 1 | Loan = 1), iii. P(Loan = 1) (the proportion of loan acceptors), iv. P(CC = 1 | Loan = 0), v. P(Online = 1 | Loan = 0), vi. P(Loan = 0)***
+***Question D) Compute the following quantities [P(A / B) means “the probability ofA given B”]: i. P(CC = 1 / Loan = 1) (the proportion of credit card holders among the loan acceptors), ii. P(Online = 1 / Loan = 1), iii. P(Loan = 1) (the proportion of loan acceptors), iv. P(CC = 1 / Loan = 0), v. P(Online = 1 / Loan = 0), vi. P(Loan = 0)***
 
 Computing Quantities
 ```{r}
-# I. P(CC = 1 | Loan = 1)
+# I. P(CC = 1 / Loan = 1)
 
 Prob_1 <- (p.PT_2[2,2]/(sum(p.PT_2[2,])))
-cat("Probability of P(CC = 1 | Loan = 1):", Prob_1)
+cat("Probability of P(CC = 1 / Loan = 1):", Prob_1)
 
 ```
 
 ```{r}
-# II. P(Online = 1 | Loan = 1)
+# II. P(Online = 1 / Loan = 1)
 
 Prob_2 <- (p.PT_1[2,2]/(sum(p.PT_1[2,])))
-cat("Probability of P(Online = 1 | Loan = 1):", Prob_2)
+cat("Probability of P(Online = 1 / Loan = 1):", Prob_2)
 ```
 
 ```{r}
@@ -148,19 +140,19 @@ cat("Probability of P(Loan = 1) (the proportion of loan acceptors):",Prob_3 )
 ```
 
 ```{r}
-# IV. P(CC = 1 | Loan = 0)
+# IV. P(CC = 1 / Loan = 0)
 
 Prob_4 <- (p.PT_2[1,2]/sum(p.PT_2[1,])) 
-cat("Probability of P(CC = 1 | Loan = 0):",Prob_4)
+cat("Probability of P(CC = 1 / Loan = 0):",Prob_4)
 
 ```
 
 ```{r}
 
-# V. P(Online = 1 | Loan = 0)
+# V. P(Online = 1 / Loan = 0)
 
 Prob_5 <- (p.PT_1[1,2]/sum(p.PT_1[1,])) 
-cat("Probability of P(Online = 1 | Loan = 0):",Prob_5)
+cat("Probability of P(Online = 1 / Loan = 0):",Prob_5)
 
 ```
 
@@ -173,25 +165,24 @@ cat("Probability of P(Loan = 0):",Prob_6)
 
 ```
 
-***Question E) Use the quantities computed above to compute the naive Bayes probability P(Loan = 1 | CC = 1, Online = 1).***
+***Question E) Use the quantities computed above to compute the naive Bayes probability P(Loan = 1 / CC = 1, Online = 1).***
 
 
-P(Loan = 1 | CC = 1, Online = 1) = P(CC=1∣Loan=1) * P(Online=1∣Loan=1)*P(Loan=1) / P(CC=1,Online=1) 
+P(Loan = 1 / CC = 1, Online = 1) = P(CC=1∣Loan=1) * P(Online=1∣Loan=1)*P(Loan=1) / P(CC=1,Online=1) 
 
 
 ```{r}
-#Naive Bayes probability formula for P(Loan = 1 | CC = 1, Online = 1) = P(CC=1∣Loan=1) * P(Online=1∣Loan=1)*P(Loan=1) / P(CC=1,Online=1) 
+#Naive Bayes probability formula for P(Loan = 1 / CC = 1, Online = 1) = P(CC=1/Loan=1) * P(Online=1/Loan=1)*P(Loan=1) / P(CC=1,Online=1) 
 
 # P(cc=1, Online=1)
-prob_7 <- (sum(p.df_2[3,2],p.df_2[4,2])/sum(p.df_2))
-prob_7
+prob_7 = sum(p.PT_2[,2])/sum(p.PT_2) 
+prob_8 = sum(p.PT_1[,1])/sum(p.PT_1)
 
 #Applying Naive bayes formula 
 
-naive_bayes_prob <- ((Prob_1*Prob_2*Prob_3)/prob_7)
+naive_bayes_prob <- ((Prob_1*Prob_2*Prob_3)/(prob_7*prob_8))
 
-cat("Naive Bayes Probability:", naive_bayes_prob)
-
+naive_bayes_prob
 ```
 
 ***Question F) Compare this value with the one obtained from the pivot table in (B). Which is a more accurate estimate?***
@@ -203,10 +194,12 @@ and Naive Bayes is : 0.1037165
 According to this bayes : 0.09925094 is more accurat, Naive Bayes is not accurate and has small deviation from actual value because it assumes all the events are independent. 
 
 
-***Question G) Which of the entries in this table are needed for computing P(Loan = 1 | CC = 1, Online = 1)? Run naive Bayes on the data. Examine the model output on training data, and find the entry that corresponds to P(Loan = 1 | CC = 1, Online = 1). Compare this to the number you obtained in (E).*** 
+***Question G) Which of the entries in this table are needed for computing P(Loan = 1 / CC = 1, Online = 1)? Run naive Bayes on the data. Examine the model output on training data, and find the entry that corresponds to P(Loan = 1 / CC = 1, Online = 1). Compare this to the number you obtained in (E).*** 
+
+We would need all the entries in our training data set where Online = 1 and Credit Card = 1.
 
 ```{r}
-#Using naive Bayes 
+#Using naive Bayes on training dataset
 Naive <- naiveBayes(Personal_Loan ~., data = train.df)
 nt <- predict(Naive, newdata = train.df)
 nt.2 = predict(Naive, newdata = train.df,type = "raw")
@@ -227,25 +220,40 @@ compare$Naive_Probablity = nt.2[,2]
 head(compare)
 ```
 
-Finding corresponding entry: 
+Finding entries corresponding P(Loan = 1/ Credit = 1 , Online = 1): 
 ```{r}
 special = train.df %>% 
-  filter(Personal_Loan==1, Online ==1 , CreditCard== 1)
+  filter( Personal_Loan==1 ,Online ==1 , CreditCard== 1)
 
 head(special[,c('ID','Personal_Loan','Online','CreditCard')])
 ```
 
 
 So we know that for above IDs personal_loan = 1, Credit Card = 1 and Online = 1. 
-Hence, we can check value of probablity for anuy of these case. 
+Hence, we can check value of probability for any of these case. 
 
 ```{r}
 # Checking for ID=982 and 972
-
 compare %>% 
-  filter(ID ==c(982,972))
-
+  filter(ID==c(982,972))
 ```
+
+Hence, the probability as per the naive bayes model is 1.00 for asked entries. However, Naive Bayes probability that we calculated while considering only online = 1 and Credit Card = 1 in part E had a value of  0.16. 
+**Therefore, we can conclude that it's important to take all columns into consideration while making a model since it can lead to huge differences in final results.**
+
+
+Calculating accuracy for our model : 
+```{r}
+
+CM = confusionMatrix(as.factor(train.df$Personal_Loan), as.factor(compare$NaiveBayes_prediction))
+
+CM$overall[1]*100
+```
+
+**Note:**
+Hence, we observe that our model is only 88%. This means that Naive Bayes is not the right classifier for this data. This is expected since Naive Bayes is supposed to go well with categorical data but our data has many numeric variables. Due to this, Naive Bayes classifier needs to use gaussian method which does not always lead to satisfying results. 
+
+
 
 
 
