@@ -1,0 +1,364 @@
+---
+title: "Assignment_5"
+author: "Aditya Ashish Kulkarni"
+date: "2024-04-06"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
+```
+
+
+```{r}
+library(ISLR)
+library(caret)
+library(ggplot2)
+library(lattice)
+#need to load dplyr and clustering packages 
+library(dplyr)
+library(cluster)
+library(factoextra)
+library(NbClust)
+library(ppclust)
+library(dendextend)
+library(tidyverse)
+
+```
+
+
+
+**Now importing the cereals data**
+```{r}
+library(readr)
+data.df <- read_csv("Cereals.csv")
+head(data.df)
+```
+
+```{r}
+#Let's analyzing data 
+str(data.df)
+
+```
+
+```{r}
+#Summary of data
+summary(data.df)
+
+```
+
+Removing NA values from Data 
+
+```{r}
+#Partitioning Data 
+#need to scale it 
+
+scaled.df = data.df
+
+scaled.df[, c(4:16)] <- scale(data.df[, c(4:16)])
+
+#omitting NA values 
+preprocess.df = na.omit(scaled.df)
+#printing Head 
+head(scaled.df)
+```
+
+***
+
+**Question.1**  **Apply hierarchical clustering to the data using Euclidean distance to the normalized measurements. Use Agnes to compare the clustering from single linkage, complete linkage, average linkage, and Ward. Choose the best method.**
+
+
+Applying Euclidean method 
+
+```{r}
+#dissimilarity matrix for numerical values 
+df.euclidean = dist(preprocess.df[, 4:16], method = "euclidean")
+
+```
+
+**Single Linkage method**
+
+```{r}
+#using Agnes for clustering
+clust.single= agnes(df.euclidean, method = "single")
+#plotting the cluster 
+plot(clust.single, main = "Single Linkage Method", 
+     xlab= "Cereal",
+     ylab= "Height",
+     cex.axis=1,
+     cex=0.50, 
+     hang=-1)
+
+print(clust.single$ac)
+
+```
+
+
+**Complete Linkage Method**
+```{r}
+#using Agnes for clustering
+clust.com= agnes(df.euclidean, method = "complete")
+#plotting the cluster 
+plot(clust.com, main = "Complete Linkage Method", 
+     xlab= "Cereal",
+     ylab= "Height",
+     cex.axis=1,
+     cex=0.50,
+     hang=-1)
+
+print(clust.com$ac)
+```
+
+
+
+**Average Linkage Method**
+
+```{r}
+#using Agnes for clustering
+clust.avg= agnes(df.euclidean, method = "average")
+#plotting the cluster 
+plot(clust.avg, main = "Average Linkage Method", 
+     xlab= "Cereal",
+     ylab= "Height",
+     cex.axis=1,
+     cex=0.50,
+     hang=-1)
+
+print(clust.avg$ac)
+
+```
+
+
+**Ward method**
+
+```{r}
+#using Agnes for clustering
+clust.ward= agnes(df.euclidean, method = "ward")
+#plotting the cluster 
+plot(clust.ward, main = "ward Linkage Method", 
+     xlab= "Cereal",
+     ylab= "Height",
+     cex.axis=1,
+     cex=0.50,
+     hang=-1)
+
+print(clust.ward$ac)
+```
+
+**Answer:** As we can see above - Single linkage method : 0.6094447, Complete Linkage Method: 0.8413498, Average Linkage Method : 0.7814484, Ward Linkage Method: 0.9049881. 
+
+We can see that the Ward linkage method is the best method, it has highest coefficient.
+
+
+***
+
+**Question 2 : How many clusters would you choose?**
+
+We need to use Silhouette and Elbow method to determine the appropriate cluster 
+
+**Silhouette Method**
+
+```{r}
+#Using Silhouette method for optimal number of clusters 
+fviz_nbclust(preprocess.df[ , c(4:16)], hcut, method = "silhouette", k.max = 25) +
+ labs(title = "Silhouette Method - Optimal Number Of Clustering")
+
+```
+
+Now, let's use Elbow method on this 
+
+**Elbow Method**
+
+```{r}
+#Using Elbow method for optimal number of clusters 
+fviz_nbclust(preprocess.df[ , c(4:16)], hcut, method = "wss", k.max = 25) +
+ labs(title = "Elbow Method - Optimal Number Of Clustering") + 
+  geom_vline(xintercept = 12, linetype=2)
+
+```
+
+From above Silhouette method it defines that 12 clusters would be ideal choice... 
+
+```{r}
+#Plotting ward hierarchical tree , 12 color highlighted for reference
+plot(clust.ward,
+     main = "AGNES: 12 clusters",
+     xlab = "Cereal",
+     ylab = "Height",
+     cex.axis = 1,
+     cex = 0.50,
+     hang= -1)
+
+rect.hclust(clust.ward, k=12, border = 1:12)
+```
+
+
+***
+
+
+**Question 3: Comment on the structure of the clusters and on their stability. Hint: To check stability,partition the data and see how well clusters formed based on one part apply to the other part. To do this: ● Cluster partition A ● Use the cluster centroids from A to assign each record in partition B (each record is assigned to the cluster with the closest centroid). ● Assess how consistent the cluster assignments are compared to the assignments based on all the data. **
+
+
+```{r}
+#Making Partition A & B 
+set.seed(69)
+partition.A = preprocess.df[1:55, 4:16]
+partition.B = preprocess.df[56:74, 4:16]
+
+#performing hierarchical clustering considering K=12 
+
+single.df = agnes(scale(partition.A), method = "single")
+complete.df = agnes(scale(partition.A), method = "complete")
+average.df = agnes(scale(partition.A), method = "average")
+ward.df <- agnes(scale(partition.A), method = "ward")
+ward.df.2 <- agnes(scale(partition.B), method = "ward")
+
+cbind(single=single.df$ac, complete=complete.df$ac, average=average.df$ac, ward=ward.df$ac)
+```
+
+```{r}
+
+pltree(ward.df, cex = 0.6, hang = -1, main = "Dendogram of Agnes with Partitioned Data")
+rect.hclust(ward.df, k = 12, border = 2:7)
+
+```
+
+Now Calculate the Centroids, here we are forming 4 centroids
+
+```{r}
+part.2 = cutree(ward.df, k=12)
+part.3 = cutree(ward.df.2,k=12)
+df_2 = as.data.frame(cbind(part.3,partition.B))
+```
+
+```{r}
+#centroids calculation
+result.df <- as.data.frame(cbind(partition.A, part.2))
+result.df[result.df$part.2==1,]
+
+
+```
+
+
+```{r}
+#Centroid 1 
+
+centroid.1=colMeans(result.df[result.df$part.2==1,])
+result.df[result.df$part.2==2,]
+
+```
+
+
+```{r}
+#Centroid 2 
+centroid.2 <- colMeans(result.df[result.df$part.2==2,])
+result.df[result.df$part.2==3,]
+
+
+```
+
+
+```{r}
+#Centroid 3
+ 
+centroid.3 <- colMeans(result.df[result.df$part.2==3,])
+result.df[result.df$part.2==4,]
+
+
+```
+
+
+```{r}
+
+#Centroid 4
+ 
+centroid.4 = colMeans(result.df[result.df$part.2==4,])
+
+centroid = rbind(centroid.1, centroid.2, centroid.3, centroid.4)
+df.2= as.data.frame(rbind(centroid[,-14], partition.B))
+
+```
+
+Let's figure out the Distance 
+
+```{r}
+Dist.1 <- get_dist(df.2)
+Matrix.1 <- as.matrix(Dist.1)
+
+dataframe= data.frame(data=seq(1, nrow(partition.B), 1), Clusters= rep(0, nrow(partition.B)))
+for(i in 1:nrow(partition.B))
+  {dataframe[i,2] <- which.min(Matrix.1[i+4, 1:4])}
+dataframe
+
+```
+
+
+```{r}
+
+cbind(df_2$part.3, dataframe$Clusters)
+
+
+
+```
+
+Comparing clusters to check stability finally : 
+```{r}
+table(df_2$part.3==dataframe$Clusters)
+```
+
+Hence, it is highly **unstable** because we have very less "TRUE" values.
+
+
+
+**Question 4:The elementary public schools would like to choose a set of cereals to include in their daily cafeterias. Every day a different cereal is offered, but all cereals should support a healthy diet. For this goal, you are requested to find a cluster of “healthy cereals.” Should the data be normalized? If not, how should they be used in the cluster analysis? **
+```{r}
+#Clustrign "Healthy Cereals"
+
+#Selecting columns which indicates the healthy cereals
+healthy_c = preprocess.df[,c("calories", "protein", "fat", "fiber", "carbo", "sugars", "potass", "vitamins")]
+
+#We have already normalized the data above so Now Don't need to normalie it...  
+
+#Now applying Euclidean method on the data 
+distance = dist(healthy_c, method = "euclidean")
+
+hc = hclust(distance, method = "ward")
+
+
+
+```
+
+
+```{r}
+# we have K= 12 so need to make 12 clusters for this data 
+
+preprocess.df$cluster = cutree(hc, k = 12)
+
+#Now only selecting Numeric columns 
+
+numeric_col = preprocess.df[, sapply(preprocess.df, is.numeric)]
+
+#Now creating cluster summary
+
+clust_summary = aggregate(. ~ cluster, data = numeric_col, FUN = mean)
+
+print(clust_summary)
+```
+
+**Answer :** Here, We have already done the normalizing on the data above So , Don't need to normalize it again.. 
+
+Interpretation from above: In my opinion Cluster 7 is the best fit on Healthy range diet because : 
+
+- It has low calorie count.
+- It has high amount of protein. 
+- Moderate fat level. 
+- Sodium contains less level so it will be good.
+- all the other ingredients are in decent amount. 
+
+So, This cereal will be the great fit for childrens growth and strength.
+
+
+
+
